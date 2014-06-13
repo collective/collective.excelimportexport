@@ -42,7 +42,7 @@ setup(name='collective.excelimportexport',
           'setuptools',
           # -*- Extra requirements: -*-
       ],
-      extras_require={'test': ['plone.app.testing']},
+      extras_require={'test': ['plone.app.testing', 'plone.app.contenttypes']},
       entry_points="""
       # -*- Entry points: -*-
       [z3c.autoinclude.plugin]

@@ -1,5 +1,4 @@
 from plone.app.testing import PloneSandboxLayer
-from plone.app.testing import applyProfile
 from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import IntegrationTesting
 from plone.app.testing import FunctionalTesting
@@ -17,7 +16,7 @@ class CollectiveexcelimportexportLayer(PloneSandboxLayer):
         # Load ZCML
         import collective.excelimportexport
         xmlconfig.file(
-            'configure.zcml',
+            'testing.zcml',
             collective.excelimportexport,
             context=configurationContext
         )
