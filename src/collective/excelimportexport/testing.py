@@ -8,7 +8,7 @@ from plone.testing import z2
 from zope.configuration import xmlconfig
 
 
-class CollectiveexcelimportexportLayer(PloneSandboxLayer):
+class CollectiveExcelImportExportLayer(PloneSandboxLayer):
 
     defaultBases = (PLONE_FIXTURE,)
 
@@ -29,12 +29,12 @@ class CollectiveexcelimportexportLayer(PloneSandboxLayer):
 #        z2.uninstallProduct(app, 'Products.PloneFormGen')
 
 
-COLLECTIVE_EXCELIMPORTEXPORT_FIXTURE = CollectiveexcelimportexportLayer()
+COLLECTIVE_EXCELIMPORTEXPORT_FIXTURE = CollectiveExcelImportExportLayer()
 COLLECTIVE_EXCELIMPORTEXPORT_INTEGRATION_TESTING = IntegrationTesting(
     bases=(COLLECTIVE_EXCELIMPORTEXPORT_FIXTURE,),
-    name="CollectiveexcelimportexportLayer:Integration"
+    name="CollectiveExcelImportExportLayer:Integration"
 )
 COLLECTIVE_EXCELIMPORTEXPORT_FUNCTIONAL_TESTING = FunctionalTesting(
     bases=(COLLECTIVE_EXCELIMPORTEXPORT_FIXTURE, z2.ZSERVER_FIXTURE),
-    name="CollectiveexcelimportexportLayer:Functional"
+    name="CollectiveExcelImportExportLayer:Functional"
 )
