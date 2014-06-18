@@ -67,7 +67,25 @@ class SheetForm(form.Form):
         if portal_type not in self.types:
             raise ValueError('TODO Validation error on type')
         info = self.types[portal_type]
-        row_form = component.getMultiAdapter(
-            (container, request, info), interfaces.IRowAddForm)
+
+        # Lookup a form for the individual row
+        if id_ in container:
+            # Lookup the form based on existing content
+            context = container[id_]
+            if context.getPortalTypeName() != portal_type:
+                # Replace existing content of a different type
+                # TODO make configurable to raise a validation error
+                container.manage_delObjects([id_])
+                row_form = component.getMultiAdapter(
+                    (container, request, info), interfaces.IRowAddForm)
+            else:
+                # Update existing content
+                # TODO make configurable to raise a validation error
+                row_form = component.getMultiAdapter(
+                    (context, request), interfaces.IRowEditForm)
+        else:
+            # Lookup the form based on the content type
+            row_form = component.getMultiAdapter(
+                (container, request, info), interfaces.IRowAddForm)
 
         return row_form

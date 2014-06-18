@@ -13,4 +13,7 @@
   <adapter provides=".interfaces.IRowAddForm"
            factory=".row.RowAddForm" />
 
+  <adapter provides=".interfaces.IRowEditForm"
+           factory=".row.RowEditForm" />
+
 </configure>

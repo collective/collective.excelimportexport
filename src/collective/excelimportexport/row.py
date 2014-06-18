@@ -5,6 +5,7 @@ from Products.CMFCore import interfaces as cmf_ifaces
 
 from plone.dexterity import interfaces as dex_ifaces
 from plone.dexterity.browser import add
+from plone.dexterity.browser import edit
 
 from collective.excelimportexport import interfaces
 
@@ -62,3 +63,12 @@ class RowAddForm(RowForm, add.DefaultAddForm):
     interface.implements(interfaces.IRowAddForm)
     component.adapts(
         cmf_ifaces.IFolderish, interface.Interface, dex_ifaces.IDexterityFTI)
+
+
+class RowEditForm(RowForm, edit.DefaultEditForm):
+    """
+    Process a row ass an edit form.
+    """
+    interface.implements(interfaces.IRowEditForm)
+    component.adapts(
+        dex_ifaces.IDexterityContent, interface.Interface)

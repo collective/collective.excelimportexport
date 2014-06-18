@@ -5,6 +5,7 @@ from zope import interface
 
 from z3c.form import interfaces as form_ifaces
 
+from plone.testing import z2
 from plone.app import testing as pa_testing
 
 from Products.CMFCore.utils import getToolByName
@@ -23,11 +24,7 @@ class TestImport(unittest.TestCase):
         self.portal = self.layer['portal']
         self.types = getToolByName(self.portal, 'portal_types')
 
-    def test_dexterity_extract_row_data(self):
-        """
-        Process a dexterity content spreadsheet row into a dict.
-        """
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
+    def assertDexterityRow(self):
         info = self.types['Document']
         schema = info.lookupSchema()
 
@@ -59,3 +56,37 @@ class TestImport(unittest.TestCase):
 
         unseen = set(seen) - set(data)
         self.assertFalse(unseen, 'Schema processing missed cells')
+
+        return row_form
+
+    def test_dexterity_extract_row_data(self):
+        """
+        Process a dexterity content spreadsheet row into a dict.
+        """
+        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
+        self.assertDexterityRow()
+
+    def test_dexterity_extract_update_row_data(self):
+        """
+        Process a dexterity content row into a dict for existing content.
+        """
+        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
+        foo_doc = self.portal[
+            self.portal.invokeFactory('Document', 'foo-document-title')]
+        row_form = self.assertDexterityRow()
+        self.assertEqual(
+            row_form.context.getPhysicalPath(), foo_doc.getPhysicalPath(),
+            'Wrong row edit form context')
+
+    def test_dexterity_extract_replace_row_data(self):
+        """
+        Process a dexterity content row into a dict to replace content.
+        """
+        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
+        self.portal.invokeFactory('News Item', 'foo-document-title')
+        self.assertDexterityRow()
+        self.assertNotIn(
+            'foo-document-title', self.portal,
+            'Did not replace existing content of a different type')
