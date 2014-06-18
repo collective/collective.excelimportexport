@@ -10,4 +10,7 @@
 
   <!-- -*- extra stuff goes here -*- -->
 
+  <adapter provides=".interfaces.IRowAddForm"
+           factory=".row.RowAddForm" />
+
 </configure>

@@ -41,6 +41,7 @@ setup(name='collective.excelimportexport',
       install_requires=[
           'setuptools',
           # -*- Extra requirements: -*-
+          'openpyxl',
       ],
       extras_require={'test': [
           'plone.app.testing',
