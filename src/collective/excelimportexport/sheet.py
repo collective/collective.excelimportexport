@@ -33,7 +33,7 @@ class SheetForm(form.Form):
         super(SheetForm, self).update()
 
     @button.buttonAndHandler(u'Import', name='import')
-    def handleImport(self):
+    def handleImport(self, action):
         """
         Parse a rows into processed values and validation errors.
         """

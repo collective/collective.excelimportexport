@@ -132,3 +132,32 @@ class TestDexterityImport(unittest.TestCase):
         row_form = self.getRowForm()
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         row_form()
+
+    def test_sheet_import(self):
+        """
+        Importing a whole sheet imports multiple content objects.
+        """
+        self.assertNotIn(
+            'foo-document-title', self.portal,
+            'Content exists before importing')
+        self.assertNotIn(
+            'bar-news-item-title', self.portal,
+            'Content exists before importing')
+
+        from collective.excelimportexport.sheet import SheetForm
+        request = self.portal.REQUEST.clone()
+        interface.alsoProvides(request, form_ifaces.IFormLayer)
+        sheet_form = SheetForm(self.portal, request, self.sheet)
+        sheet_form.update()
+        action = sheet_form.actions['import']
+        sheet_form.request.form[action.name] = True
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
+        sheet_form()
+
+        self.assertIn(
+            'foo-document-title', self.portal,
+            'Content not created from import')
+        self.assertIn(
+            'bar-news-item-title', self.portal,
+            'Content not created from import')
+        
