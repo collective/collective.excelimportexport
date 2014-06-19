@@ -27,9 +27,11 @@ class TestDexterityImport(unittest.TestCase):
 
         import openpyxl
         self.workbook = openpyxl.load_workbook(os.path.join(
-            os.path.dirname(__file__), 'import.xlsx'))
+            os.path.dirname(__file__), 'import.xlsx'), use_iterators=True)
         self.sheet = self.workbook.worksheets[1]
-        self.row = self.sheet.rows[1]
+        self.rows = self.sheet.iter_rows()
+        self.header = self.rows.next()
+        self.row = self.rows.next()
 
     def getRowForm(self):
         from collective.excelimportexport.sheet import SheetForm
@@ -94,7 +96,7 @@ class TestDexterityImport(unittest.TestCase):
             'Only removed existing content, should be replaced')
         foo_doc = self.portal['foo-document-title']
         self.assertEqual(
-            foo_doc.getPortalTypeName(), self.row[0].value,
+            foo_doc.getPortalTypeName(), self.row[0].internal_value,
             'Wrong content type')
 
     def test_dexterity_add(self):
@@ -112,14 +114,16 @@ class TestDexterityImport(unittest.TestCase):
             'Content not created from import')
         foo_doc = self.portal['foo-document-title']
         self.assertEqual(
-            foo_doc.getPortalTypeName(), self.row[0].value,
+            foo_doc.getPortalTypeName(), self.row[0].internal_value,
             'Wrong content type')
         self.assertEqual(
-            foo_doc.Title(), self.row[2].value, 'Wrong title value')
+            foo_doc.Title(), self.row[2].internal_value, 'Wrong title value')
         self.assertEqual(
-            foo_doc.Description(),  self.row[3].value, 'Wrong title value')
+            foo_doc.Description(),  self.row[3].internal_value,
+            'Wrong title value')
         self.assertEqual(
-            foo_doc.text.raw,  self.row[4].value, 'Wrong text value')
+            foo_doc.text.raw,  self.row[4].internal_value,
+            'Wrong text value')
 
     def test_dexterity_update(self):
         """

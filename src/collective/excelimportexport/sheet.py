@@ -25,8 +25,9 @@ class SheetForm(form.Form):
         """
         Assemble forms for each row in the sheet.
         """
+        self.rows = self.sheet.iter_rows()
         self.header = tuple(itertools.takewhile(
-            operator.attrgetter('value'), self.sheet.rows[0]))
+            operator.attrgetter('internal_value'), self.rows.next()))
         self.types = getToolByName(self.context, 'portal_types')
 
         super(SheetForm, self).update()
@@ -36,7 +37,7 @@ class SheetForm(form.Form):
         """
         Parse a rows into processed values and validation errors.
         """
-        for row in self.sheet.rows:
+        for row in self.rows:
             row_form = self.getRowForm(row)
             row_form()
             if getattr(row_form, 'errors', None):
@@ -49,8 +50,8 @@ class SheetForm(form.Form):
         # Assemble a form submission from the row
         request = self.request.clone()
         for idx, header_cell in enumerate(self.header):
-            key = header_cell.value
-            request.form[key] = row[idx].value
+            key = header_cell.internal_value
+            request.form[key] = row[idx].internal_value
 
         # Process the path before processing the form
         container_path, id_ = request.form.pop('path').rsplit('/', 1)
