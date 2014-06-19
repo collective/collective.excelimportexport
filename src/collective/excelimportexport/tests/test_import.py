@@ -13,7 +13,7 @@ from Products.CMFCore.utils import getToolByName
 from collective.excelimportexport import testing
 
 
-class TestImport(unittest.TestCase):
+class TestDexterityImport(unittest.TestCase):
     """
     Test processing spreadsheets for importing content.
     """
@@ -23,6 +23,7 @@ class TestImport(unittest.TestCase):
     def setUp(self):
         self.portal = self.layer['portal']
         self.types = getToolByName(self.portal, 'portal_types')
+        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
 
         import openpyxl
         self.workbook = openpyxl.load_workbook(os.path.join(
@@ -67,14 +68,12 @@ class TestImport(unittest.TestCase):
         """
         Process a dexterity content spreadsheet row into a dict.
         """
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
         self.assertDexterityRow()
 
     def test_dexterity_extract_update_row_data(self):
         """
         Process a dexterity content row into a dict for existing content.
         """
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         foo_doc = self.portal[
             self.portal.invokeFactory('Document', 'foo-document-title')]
@@ -87,7 +86,6 @@ class TestImport(unittest.TestCase):
         """
         Process a dexterity content row into a dict to replace content.
         """
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         self.portal.invokeFactory('News Item', 'foo-document-title')
         self.assertDexterityRow()
@@ -103,7 +101,6 @@ class TestImport(unittest.TestCase):
         """
         Importing a row can add dexterity content.
         """
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
         self.assertNotIn(
             'foo-document-title', self.portal,
             'Content exists before importing')
@@ -128,7 +125,6 @@ class TestImport(unittest.TestCase):
         """
         Importing a row can update existing dexterity content.
         """
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
         row_form = self.getRowForm()
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         row_form()
