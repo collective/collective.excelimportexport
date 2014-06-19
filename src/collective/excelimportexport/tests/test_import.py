@@ -24,22 +24,26 @@ class TestImport(unittest.TestCase):
         self.portal = self.layer['portal']
         self.types = getToolByName(self.portal, 'portal_types')
 
+        import openpyxl
+        self.workbook = openpyxl.load_workbook(os.path.join(
+            os.path.dirname(__file__), 'import.xlsx'))
+        self.sheet = self.workbook.worksheets[1]
+        self.row = self.sheet.rows[1]
+
+    def getRowForm(self):
+        from collective.excelimportexport.sheet import SheetForm
+        request = self.portal.REQUEST.clone()
+        interface.alsoProvides(request, form_ifaces.IFormLayer)
+        sheet_form = SheetForm(self.portal, request, self.sheet)
+        sheet_form.update()
+        return sheet_form.getRowForm(self.row)
+        
     def assertDexterityRow(self):
         info = self.types['Document']
         schema = info.lookupSchema()
 
-        import openpyxl
-        workbook = openpyxl.load_workbook(os.path.join(
-            os.path.dirname(__file__), 'import.xlsx'))
-        sheet = workbook.worksheets[1]
-        row = sheet.rows[1]
-
-        from collective.excelimportexport.sheet import SheetForm
-        request = self.portal.REQUEST.clone()
-        interface.alsoProvides(request, form_ifaces.IFormLayer)
-        sheet_form = SheetForm(self.portal, request, sheet)
-        sheet_form.update()
-        row_form = sheet_form.getRowForm(row)
+        row_form = self.getRowForm()
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         row_form.update()
         data, errors = row_form.extractData()
         self.assertFalse(errors, 'Validation errors in row')
@@ -87,6 +91,44 @@ class TestImport(unittest.TestCase):
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         self.portal.invokeFactory('News Item', 'foo-document-title')
         self.assertDexterityRow()
+        self.assertIn(
+            'foo-document-title', self.portal,
+            'Only removed existing content, should be replaced')
+        foo_doc = self.portal['foo-document-title']
+        self.assertEqual(
+            foo_doc.getPortalTypeName(), self.row[0].value,
+            'Wrong content type')
+
+    def test_dexterity_add(self):
+        """
+        Importing a row can add dexterity content.
+        """
+        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
         self.assertNotIn(
             'foo-document-title', self.portal,
-            'Did not replace existing content of a different type')
+            'Content exists before importing')
+        row_form = self.getRowForm()
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
+        row_form()
+        self.assertIn(
+            'foo-document-title', self.portal,
+            'Content not created from import')
+        foo_doc = self.portal['foo-document-title']
+        self.assertEqual(
+            foo_doc.getPortalTypeName(), self.row[0].value,
+            'Wrong content type')
+        self.assertEqual(
+            foo_doc.Title(), self.row[2].value, 'Wrong title value')
+        self.assertEqual(
+            foo_doc.Description(),  self.row[3].value, 'Wrong title value')
+        self.assertEqual(
+            foo_doc.text.raw,  self.row[4].value, 'Wrong text value')
+
+    def test_dexterity_update(self):
+        """
+        Importing a row can update existing dexterity content.
+        """
+        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
+        row_form = self.getRowForm()
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
+        row_form()

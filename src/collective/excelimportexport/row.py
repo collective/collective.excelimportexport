@@ -32,12 +32,19 @@ class RowForm(object):
                     self.request.form[name] = self.request.form.pop(
                         field.field.__name__)
 
-    def update(self):
+    def updateWidgets(self):
         """
         Process the row as a form submission.
         """
-        super(RowForm, self).update()
+        super(RowForm, self).updateWidgets()
 
+        groups = []
+        for groupClass in self.groups:
+            group = groupClass(self.context, self.request, self)
+            group.update()
+            groups.append(group)
+        self.groups = tuple(groups)
+        
         for group in (self, ) + self.groups:
             for name, widget in group.widgets.items():
 
@@ -54,6 +61,15 @@ class RowForm(object):
                         getattr(widget.field, 'default', None) is not None):
                     self.request.form[widget.name] = widget.terms.getTerm(
                         widget.field.default).token
+
+    def updateActions(self):
+        """
+        Manually trigger the save action
+        """
+        super(RowForm, self).updateActions()
+
+        save = self.actions['save']
+        self.request.form[save.name] = True
 
 
 class RowAddForm(RowForm, add.DefaultAddForm):
