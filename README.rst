@@ -45,6 +45,12 @@ to make sure the columns correspond to arguments that the CMF content factory
 can handle.  On export, each of the contexts passed as arguments will be
 exported recursively into a separate sheet.
 
+Browser views
+  One browser view provides a form for uploading a spreadsheet from which to
+  import content.  Other views support exporting content to a spread sheet from
+  a single folder, the content listed in a collection, or the content listed in
+  a search.
+
 `GenericSetup`_
   For import, include a ``structure.xls.d`` directory in your GenericSetup
   profile containing spreadsheet files to be imported.  Columns other than
@@ -56,12 +62,6 @@ exported recursively into a separate sheet.
   the directory specified in the section configuration.  The writer blueprint
   will write items to the spreadsheet specified in the section configuration
   for each item.
-
-Browser views : TODO
-  One browser view provides a form for uploading a spreadsheet from which to
-  import content.  Other views support exporting content to a spread sheet from
-  a single folder, the content listed in a collection, or the content listed in
-  a search.
 
 
 .. _`CMF`: http://old.zope.org/Products/CMF/index.html/

@@ -20,7 +20,7 @@ class TestDexterityImport(unittest.TestCase):
     Test processing spreadsheets for importing content.
     """
 
-    layer = testing.COLLECTIVE_EXCELIMPORTEXPORT_INTEGRATION_TESTING
+    layer = testing.COLLECTIVE_EXCELIMPORTEXPORT_FUNCTIONAL_TESTING
 
     def setUp(self):
         self.portal = self.layer['portal']
@@ -212,3 +212,35 @@ class TestDexterityImport(unittest.TestCase):
             'garply-folder-title', self.portal,
             'Content not created from import')
         
+    def test_workbook_browser_import(self):
+        """
+        A workbook can be imported in the browser.
+        """
+        import transaction
+        transaction.commit()
+        
+        from plone.testing.z2 import Browser
+        browser = Browser(self.layer['app'])
+        browser.handleErrors = False
+        browser.open(self.portal.absolute_url() + '/login_form')
+        browser.getControl(
+            name='__ac_name').value = pa_testing.SITE_OWNER_NAME
+        browser.getControl(
+            name='__ac_password').value = pa_testing.SITE_OWNER_PASSWORD
+        browser.getControl(name='submit').click()
+
+        import mimetypes
+        browser.open(self.portal.absolute_url() + '/workbook-import')
+        workbook_ctrl = browser.getControl(name='form.widgets.workbook')
+        workbook_ctrl.add_file(
+            open(self.workbook_path),
+            mimetypes.guess_type(self.workbook_path)[0],
+            os.path.basename(self.workbook_path))
+        
+        self.assertNotIn(
+            'foo-document-title', self.portal,
+            'Content exists before importing')
+        browser.getControl('Import').click()
+        self.assertIn(
+            'foo-document-title', self.portal,
+            'Content not created from import')
