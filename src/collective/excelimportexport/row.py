@@ -32,19 +32,13 @@ class RowForm(object):
                     self.request.form[name] = self.request.form.pop(
                         field.field.__name__)
 
-    def updateWidgets(self):
+    def updateActions(self):
         """
         Process the row as a form submission.
         """
-        super(RowForm, self).updateWidgets()
-
-        groups = []
-        for groupClass in self.groups:
-            group = groupClass(self.context, self.request, self)
-            group.update()
-            groups.append(group)
-        self.groups = tuple(groups)
-        
+        # Do this in updateActions so we have the groups processed after
+        # updateWidgets but before self.actions.execute in
+        # z3c.form.group.GroupForm.update
         for group in (self, ) + self.groups:
             for name, widget in group.widgets.items():
 
