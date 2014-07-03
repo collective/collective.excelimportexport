@@ -1,6 +1,9 @@
 from zope import interface
 from zope import component
 
+from z3c.form import widget as form_widget
+from z3c.form import object as form_object
+
 from Products.CMFCore import interfaces as cmf_ifaces
 
 from plone.dexterity import interfaces as dex_ifaces
@@ -49,12 +52,9 @@ class RowForm(object):
     
                 # Add default values for required fields that have them to
                 # avoid erroneous validation errors
-                if (
-                        widget.name not in self.request.form and
-                        widget.field.required and
-                        getattr(widget.field, 'default', None) is not None):
-                    self.request.form[widget.name] = widget.terms.getTerm(
-                        widget.field.default).token
+                if isinstance(widget, (
+                        form_widget.SequenceWidget, form_object.ObjectWidget)):
+                    self.request.form[widget.name + '-empty-marker'] = '1'
 
         super(RowForm, self).updateActions()
 

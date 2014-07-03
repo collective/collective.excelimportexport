@@ -4,12 +4,11 @@ import unittest2 as unittest
 from zope import interface
 from zope.publisher import browser
 
-from z3c.form import interfaces as form_ifaces
-
 from ZPublisher import HTTPRequest
 
 from plone.testing import z2
 from plone.app import testing as pa_testing
+from plone.app.z3cform import interfaces as z3cform_ifaces
 
 from Products.CMFCore.utils import getToolByName
 
@@ -41,7 +40,7 @@ class TestDexterityImport(unittest.TestCase):
     def getRowForm(self):
         from collective.excelimportexport.sheet import WorkbookForm
         request = self.portal.REQUEST.clone()
-        interface.alsoProvides(request, form_ifaces.IFormLayer)
+        interface.alsoProvides(request, z3cform_ifaces.IPloneFormLayer)
         book_form = WorkbookForm(self.portal, request)
         book_form.update()
         book_form.updateSheet(self.sheet)
@@ -145,7 +144,7 @@ class TestDexterityImport(unittest.TestCase):
 
         from collective.excelimportexport.sheet import WorkbookForm
         request = self.portal.REQUEST.clone()
-        interface.alsoProvides(request, form_ifaces.IFormLayer)
+        interface.alsoProvides(request, z3cform_ifaces.IPloneFormLayer)
         workbook_form = WorkbookForm(self.portal, request)
         workbook_form.update()
 
@@ -186,7 +185,7 @@ class TestDexterityImport(unittest.TestCase):
 
         from collective.excelimportexport.sheet import WorkbookForm
         request = self.portal.REQUEST.clone()
-        interface.alsoProvides(request, form_ifaces.IFormLayer)
+        interface.alsoProvides(request, z3cform_ifaces.IPloneFormLayer)
         workbook_form = WorkbookForm(self.portal, request)
         workbook_form.update()
 
