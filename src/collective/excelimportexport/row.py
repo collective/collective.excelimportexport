@@ -61,7 +61,7 @@ class RowForm(object):
 
 class RowAddForm(RowForm, add.DefaultAddForm):
     """
-    Process a row ass an add form.
+    Process a row as an add form.
     """
     interface.implements(interfaces.IRowAddForm)
     component.adapts(
@@ -70,7 +70,7 @@ class RowAddForm(RowForm, add.DefaultAddForm):
 
 class RowEditForm(RowForm, edit.DefaultEditForm):
     """
-    Process a row ass an edit form.
+    Process a row as an edit form.
     """
     interface.implements(interfaces.IRowEditForm)
     component.adapts(
