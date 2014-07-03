@@ -2,8 +2,11 @@ import os
 import unittest2 as unittest
 
 from zope import interface
+from zope.publisher import browser
 
 from z3c.form import interfaces as form_ifaces
+
+from ZPublisher import HTTPRequest
 
 from plone.testing import z2
 from plone.app import testing as pa_testing
@@ -26,20 +29,23 @@ class TestDexterityImport(unittest.TestCase):
         pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
 
         import openpyxl
-        self.workbook = openpyxl.load_workbook(os.path.join(
-            os.path.dirname(__file__), 'import.xlsx'), use_iterators=True)
+        self.workbook_path = os.path.join(
+            os.path.dirname(__file__), 'import.xlsx')
+        self.workbook = openpyxl.load_workbook(
+            self.workbook_path, use_iterators=True)
         self.sheet = self.workbook.worksheets[1]
         self.rows = self.sheet.iter_rows()
         self.header = self.rows.next()
         self.row = self.rows.next()
 
     def getRowForm(self):
-        from collective.excelimportexport.sheet import SheetForm
+        from collective.excelimportexport.sheet import WorkbookForm
         request = self.portal.REQUEST.clone()
         interface.alsoProvides(request, form_ifaces.IFormLayer)
-        sheet_form = SheetForm(self.portal, request, self.sheet)
-        sheet_form.update()
-        return sheet_form.getRowForm(self.row)
+        book_form = WorkbookForm(self.portal, request)
+        book_form.update()
+        book_form.updateSheet(self.sheet)
+        return book_form.getRowForm(self.row)
         
     def assertDexterityRow(self):
         info = self.types['Document']
@@ -47,7 +53,6 @@ class TestDexterityImport(unittest.TestCase):
 
         row_form = self.getRowForm()
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
-        row_form.update()
         data, errors = row_form.extractData()
         self.assertFalse(errors, 'Validation errors in row')
 
@@ -117,12 +122,12 @@ class TestDexterityImport(unittest.TestCase):
             foo_doc.getPortalTypeName(), self.row[0].internal_value,
             'Wrong content type')
         self.assertEqual(
-            foo_doc.Title(), self.row[2].internal_value, 'Wrong title value')
+            foo_doc.Title(), self.row[1].internal_value, 'Wrong title value')
         self.assertEqual(
-            foo_doc.Description(),  self.row[3].internal_value,
+            foo_doc.Description(),  self.row[2].internal_value,
             'Wrong title value')
         self.assertEqual(
-            foo_doc.text.raw,  self.row[4].internal_value,
+            foo_doc.text.raw,  self.row[3].internal_value,
             'Wrong text value')
 
     def test_dexterity_update(self):
@@ -144,20 +149,73 @@ class TestDexterityImport(unittest.TestCase):
             'bar-news-item-title', self.portal,
             'Content exists before importing')
 
-        from collective.excelimportexport.sheet import SheetForm
+        from collective.excelimportexport.sheet import WorkbookForm
         request = self.portal.REQUEST.clone()
         interface.alsoProvides(request, form_ifaces.IFormLayer)
-        sheet_form = SheetForm(self.portal, request, self.sheet)
-        sheet_form.update()
-        action = sheet_form.actions['import']
-        sheet_form.request.form[action.name] = True
+        workbook_form = WorkbookForm(self.portal, request)
+        workbook_form.update()
+
+        # Stub out a file upload submittions
+        widget = workbook_form.widgets['workbook']
+        storage = browser.ZopeFieldStorage(environ={})
+        storage.file = open(self.workbook_path)
+        storage.filename = storage.file.name
+        workbook_form.request.form[
+            widget.name] = HTTPRequest.FileUpload(storage)
+
+        action = workbook_form.actions['import']
+        workbook_form.request.form[action.name] = True
+
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
-        sheet_form()
+        workbook_form()
 
         self.assertIn(
             'foo-document-title', self.portal,
             'Content not created from import')
         self.assertIn(
             'bar-news-item-title', self.portal,
+            'Content not created from import')
+
+    def test_workbook_import(self):
+        """
+        Importing a whole workbook imports multiple sheets.
+        """
+        self.assertNotIn(
+            'foo-document-title', self.portal,
+            'Content exists before importing')
+        self.assertNotIn(
+            'bar-news-item-title', self.portal,
+            'Content exists before importing')
+        self.assertNotIn(
+            'corge-document-title', self.portal,
+            'Content exists before importing')
+
+        from collective.excelimportexport.sheet import WorkbookForm
+        request = self.portal.REQUEST.clone()
+        interface.alsoProvides(request, form_ifaces.IFormLayer)
+        workbook_form = WorkbookForm(self.portal, request)
+        workbook_form.update()
+
+        # Stub out a file upload submittions
+        widget = workbook_form.widgets['workbook']
+        storage = browser.ZopeFieldStorage(environ={})
+        storage.file = open(self.workbook_path)
+        storage.filename = storage.file.name
+        workbook_form.request.form[
+            widget.name] = HTTPRequest.FileUpload(storage)
+        
+        action = workbook_form.actions['import']
+        workbook_form.request.form[action.name] = True
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
+        workbook_form()
+
+        self.assertIn(
+            'foo-document-title', self.portal,
+            'Content not created from import')
+        self.assertIn(
+            'bar-news-item-title', self.portal,
+            'Content not created from import')
+        self.assertIn(
+            'garply-folder-title', self.portal,
             'Content not created from import')
         
