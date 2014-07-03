@@ -56,14 +56,7 @@ class RowForm(object):
                     self.request.form[widget.name] = widget.terms.getTerm(
                         widget.field.default).token
 
-    def updateActions(self):
-        """
-        Manually trigger the save action
-        """
         super(RowForm, self).updateActions()
-
-        save = self.actions['save']
-        self.request.form[save.name] = True
 
 
 class RowAddForm(RowForm, add.DefaultAddForm):

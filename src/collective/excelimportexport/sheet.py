@@ -43,7 +43,7 @@ class SheetForm(form.Form):
             if getattr(row_form, 'errors', None):
                 self.TODO()
 
-    def getRowForm(self, row):
+    def getRowForm(self, row, action='save'):
         """
         Delegate each row to a separate form.
         """
@@ -88,5 +88,9 @@ class SheetForm(form.Form):
             # Lookup the form based on the content type
             row_form = component.getMultiAdapter(
                 (container, request, info), interfaces.IRowAddForm)
+
+        row_form.update()
+        action = row_form.actions['save']
+        row_form.request.form[action.name] = True
 
         return row_form
