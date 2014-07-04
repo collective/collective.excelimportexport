@@ -18,11 +18,12 @@ from collective.excelimportexport import testing
 
 class TestDexterityImport(unittest.TestCase):
     """
-    Test processing spreadsheets for importing content.
+    Test processing spreadsheets for importing Dexterity content.
     """
 
     layer = testing.COLLECTIVE_EXCELIMPORTEXPORT_FUNCTIONAL_TESTING
 
+    profile = 'plone.app.contenttypes:default'
     title_name = 'IDublinCore.title'
     description_name = 'IDublinCore.description'
     subjects_name = 'IDublinCore.subjects'
@@ -32,7 +33,8 @@ class TestDexterityImport(unittest.TestCase):
     def setUp(self):
         self.portal = self.layer['portal']
         self.types = getToolByName(self.portal, 'portal_types')
-        pa_testing.applyProfile(self.portal, 'plone.app.contenttypes:default')
+        if self.profile:
+            pa_testing.applyProfile(self.portal, self.profile)
 
         import openpyxl
         self.workbook_path = os.path.join(
@@ -51,9 +53,10 @@ class TestDexterityImport(unittest.TestCase):
         book_form = WorkbookForm(self.portal, request)
         book_form.update()
         book_form.updateSheet(self.sheet)
+        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         return book_form.getRowForm(self.row)
     
-    def assertDexterityRow(self):
+    def assertRow(self):
         row_form = self.getRowForm()
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         data, errors = row_form.extractData()
@@ -79,30 +82,30 @@ class TestDexterityImport(unittest.TestCase):
 
     def test_extract_row_data(self):
         """
-        Process a dexterity content spreadsheet row into a dict.
+        Process a content spreadsheet row into a dict.
         """
-        self.assertDexterityRow()
+        self.assertRow()
 
-    def test_dexterity_extract_update_row_data(self):
+    def test_extract_update_row_data(self):
         """
-        Process a dexterity content row into a dict for existing content.
+        Process a content row into a dict for existing content.
         """
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         foo_doc = self.portal[
             self.portal.invokeFactory('Document', 'foo-document-title')]
-        row_form = self.assertDexterityRow()
+        row_form = self.assertRow()
         self.skipTest('TODO add id column support for replacing content')
         self.assertEqual(
             row_form.context.getPhysicalPath(), foo_doc.getPhysicalPath(),
             'Wrong row edit form context')
 
-    def test_dexterity_extract_replace_row_data(self):
+    def test_extract_replace_row_data(self):
         """
-        Process a dexterity content row into a dict to replace content.
+        Process a content row into a dict to replace content.
         """
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         self.portal.invokeFactory('News Item', 'foo-document-title')
-        self.assertDexterityRow()
+        self.assertRow()
         self.assertIn(
             'foo-document-title', self.portal,
             'Only removed existing content, should be replaced')
@@ -112,15 +115,14 @@ class TestDexterityImport(unittest.TestCase):
             foo_doc.getPortalTypeName(), self.row[0].internal_value,
             'Wrong content type')
 
-    def test_dexterity_add(self):
+    def test_add(self):
         """
-        Importing a row can add dexterity content.
+        Importing a row can add content.
         """
         self.assertNotIn(
             'foo-document-title', self.portal,
             'Content exists before importing')
         row_form = self.getRowForm()
-        z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         row_form()
         self.assertIn(
             'foo-document-title', self.portal,
@@ -134,9 +136,6 @@ class TestDexterityImport(unittest.TestCase):
         self.assertEqual(
             foo_doc.Description(),  self.row[2].internal_value,
             'Wrong title value')
-        self.assertEqual(
-            foo_doc.text.raw,  self.row[3].internal_value,
-            'Wrong text value')
 
     def test_sheet_import(self):
         """

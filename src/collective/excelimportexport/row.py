@@ -58,6 +58,12 @@ class RowForm(object):
 
         super(RowForm, self).updateActions()
 
+    def render(self):
+        """
+        Render a spreadsheet with highlighted errors if validation failed.
+        """
+        return 'TODO'
+
 
 class RowAddForm(RowForm, add.DefaultAddForm):
     """

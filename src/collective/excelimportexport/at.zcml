@@ -1,0 +1,20 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="collective.excelimportexport">
+
+  <class class="Products.Archetypes.BaseObject.BaseObject">
+    <implements interface="plone.app.content.interfaces.INameFromTitle" />
+  </class>
+  
+  <adapter provides=".interfaces.IRowAddForm"
+           factory=".at.ATRowAddForm" />
+
+  <adapter factory=".at.ATFieldWidget" />
+
+  <adapter
+      for=".at.IATField
+           z3c.form.interfaces.IFieldWidget"
+      factory="z3c.form.converter.FieldDataConverter" />
+
+</configure>
