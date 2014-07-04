@@ -9,6 +9,7 @@ from ZPublisher import HTTPRequest
 from plone.testing import z2
 from plone.app import testing as pa_testing
 from plone.app.z3cform import interfaces as z3cform_ifaces
+from plone.app.textfield import value
 
 from Products.CMFCore.utils import getToolByName
 
@@ -21,6 +22,11 @@ class TestDexterityImport(unittest.TestCase):
     """
 
     layer = testing.COLLECTIVE_EXCELIMPORTEXPORT_FUNCTIONAL_TESTING
+
+    title_name = 'IDublinCore.title'
+    description_name = 'IDublinCore.description'
+    title_type = description_type = unicode
+    text_type = value.RichTextValue
 
     def setUp(self):
         self.portal = self.layer['portal']
@@ -45,32 +51,25 @@ class TestDexterityImport(unittest.TestCase):
         book_form.update()
         book_form.updateSheet(self.sheet)
         return book_form.getRowForm(self.row)
-        
+    
     def assertDexterityRow(self):
-        info = self.types['Document']
-        schema = info.lookupSchema()
-
         row_form = self.getRowForm()
         z2.login(self.layer['app']['acl_users'], pa_testing.SITE_OWNER_NAME)
         data, errors = row_form.extractData()
         self.assertFalse(errors, 'Validation errors in row')
+        self.assertIn(self.title_name, data, 'Row data missing title')
+        self.assertIsInstance(
+            data[self.title_name], self.title_type, 'Wrong imported title type')
+        self.assertIn(
+            self.description_name, data, 'Row data missing description')
+        self.assertIsInstance(
+            data[self.description_name], self.description_type,
+            'Wrong imported description type')
+        self.assertIn('text', data, 'Row data missing text')
+        self.assertIsInstance(
+            data['text'], self.text_type, 'Wrong imported text type')
 
-        seen = []
-        for attr in schema:
-            seen.append(attr)
-            self.assertIn(
-                attr, data, 'Dexterity row data missing attribute')
-            field = schema[attr]
-            value = data[attr]
-            self.assertIsInstance(
-                value, field._type, 'Wrong imported field value type')
-
-        unseen = set(seen) - set(data)
-        self.assertFalse(unseen, 'Schema processing missed cells')
-
-        return row_form
-
-    def test_dexterity_extract_row_data(self):
+    def test_extract_row_data(self):
         """
         Process a dexterity content spreadsheet row into a dict.
         """
