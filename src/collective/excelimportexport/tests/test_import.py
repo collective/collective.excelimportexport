@@ -25,6 +25,7 @@ class TestDexterityImport(unittest.TestCase):
 
     title_name = 'IDublinCore.title'
     description_name = 'IDublinCore.description'
+    subjects_name = 'IDublinCore.subjects'
     title_type = description_type = unicode
     text_type = value.RichTextValue
 
@@ -65,6 +66,13 @@ class TestDexterityImport(unittest.TestCase):
         self.assertIsInstance(
             data[self.description_name], self.description_type,
             'Wrong imported description type')
+        self.assertIn(
+            self.subjects_name, data, 'Row data missing subjects')
+        self.assertIsInstance(
+            data[self.subjects_name], (tuple, list),
+            'Wrong imported subjects type')
+        self.assertGreater(
+            len(data[self.subjects_name]), 1, 'Wrong imported subjects type')
         self.assertIn('text', data, 'Row data missing text')
         self.assertIsInstance(
             data['text'], self.text_type, 'Wrong imported text type')
